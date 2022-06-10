@@ -51,13 +51,15 @@
 (local) (mm-apply mm-cache)
 (de mm-apply @
   # optimize applicable method building by caching lookups
-  (let ("N" (next)
-        "A" (rest)
-        "K" (mapcar type "A")
-        "Mm" (cache 'mm-cache "K"
-              (filter
-                '((M) (mm-applicable "K" (car M)))
-                (get "N" 'mm)) ))
+  # #(cache 'mm-cache M ...)
+  (let ("N" (next) # meth name
+        "A" (rest) # args
+        "K" (mapcar type "A") # list of arg types
+        "Mm" 
+            (filter
+              '((M) # method def so car is args
+                  (mm-applicable "K" (car M)))
+              (get "N" 'mm)) )
     (ifn "Mm"
       (quit 'mm (list "No applicable method" "N" "A" "K"))
       (let
