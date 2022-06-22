@@ -13,9 +13,25 @@
 
   * Implement fmt
 
+  Bug with del>
+  -> need to get symbol from same namespace
+  
 }#
 
-(de dg (List)
+(de intern-delegate (Nm Fmt Key)
+  (if Fmt # intern in current namespace
+      (intern
+        (let (C (chop Nm)
+              ?? (index '? C))
+          (pack
+            (head (if ?? -2 -1) C)
+            "-"
+            (name Key)
+            (if ?? "?>" ">")))
+        T)
+      (intern Nm T)))
+
+(de delegate (List)
   (prog1
     (make
       (let I NIL
@@ -27,29 +43,19 @@
                     '((X)
                       (not (member (car X) Excl)))
                     (val Cls))
-              (let (Sym (car Meth)
+              (let (Sym (intern (name (car Meth)) T) #(car Meth)
                     Nm (name Sym))
-                # quit on name conflict
+                # quit on *sym* conflict (not just name)
                 (when (idx 'I Sym)
                   (quit
                     (text
-                      "dg: method conflict! key=@1 method=@2 classes=@3"
-                      (sym Key)
+                      "dg: @1 @2 -- method already exists on class @3 property key @4"
                       (sym Nm)
-                      (sym Cls))))
+                      (sym Cls)
+                      (sym *Class)
+                      (sym Key))))
                 (idx 'I Sym T)
-                (let (@dg
-                        (if Fmt
-                            (intern
-                              (let (C (chop Nm)
-                                    ?? (index '? C))
-                                (pack
-                                  (head (if ?? -2 -1) C)
-                                  "-"
-                                  (name Key)
-                                  (if ?? "?>" ">")))
-                              T)
-                            (intern Nm T))
+                (let (@dg (intern-delegate Nm Fmt Key)
                       @arg '@
                       @qsym (cons 'quote Sym)
                       @key Key)
